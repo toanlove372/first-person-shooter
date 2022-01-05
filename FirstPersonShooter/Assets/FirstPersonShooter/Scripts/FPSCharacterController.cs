@@ -6,22 +6,26 @@ namespace FirstPersonShooter
 {
     public class FPSCharacterController : MonoBehaviour
     {
-        Transform cameraTransform;
+        [Header("Movement")]
+        public Transform cameraTransform;
         public CharacterController controller;
         public float jumpForce;
         public float gravity;
         public float moveSpeed;
         public float rotateSpeed;
 
+        [Header("Shooting")]
+        public float fireCooldown;
+        public Transform bulletStartPos;
+        public Bullet bulletPrefab;
+
         private float rotation;
         private bool jump;
         private float ySpeed;
         private bool prevGrounded;
+        private Vector3 currentMoveDirection;
 
-        private void Awake()
-        {
-            cameraTransform = Camera.main.transform;
-        }
+        private float lastTimeFire;
 
         // Start is called before the first frame update
         void Start()
@@ -73,11 +77,7 @@ namespace FirstPersonShooter
             }
 
             moveDirection *= this.moveSpeed;
-            if (grounded)
-            {
-                
-            }
-            else
+            if (grounded == false)
             {
                 this.ySpeed -= this.gravity;
             }
@@ -88,6 +88,7 @@ namespace FirstPersonShooter
                 moveDirection.y = 0f;
 
             prevGrounded = grounded;
+            this.currentMoveDirection = moveDirection;
 
             if (Mathf.Approximately(horizontal, 0f) && Mathf.Approximately(vertical, 0f))
             {
@@ -109,7 +110,16 @@ namespace FirstPersonShooter
 
         public void PlayerFiring()
         {
+            if (Time.time - this.lastTimeFire < this.fireCooldown)
+            {
+                return;
+            }
+            this.lastTimeFire = Time.time;
+
             Debug.Log("Fire");
+            Bullet bullet = Instantiate(this.bulletPrefab, this.bulletStartPos.position, this.cameraTransform.rotation);
+            bullet.Init(this.cameraTransform.forward, this.currentMoveDirection);
+
             this.SetFireAnim();
         }
 
