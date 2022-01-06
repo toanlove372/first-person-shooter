@@ -1,11 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 namespace FirstPersonShooter
 {
     public class FPSCharacterController : MonoBehaviour
     {
+        private enum State
+        {
+            Waiting,
+            Playing,
+            Death,
+        }
+
         [Header("Movement")]
         public Transform cameraTransform;
         public CharacterController controller;
@@ -19,22 +27,65 @@ namespace FirstPersonShooter
         public Transform bulletStartPos;
         public Bullet bulletPrefab;
 
+        [Header("Health")]
+        public Health health;
+
         private float rotation;
         private bool jump;
         private float ySpeed;
         private bool prevGrounded;
-        private Vector3 currentMoveDirection;
 
         private float lastTimeFire;
+
+        private State state;
+
+        public event Action<int> onTakeDamage;
+        public event Action onDie;
 
         // Start is called before the first frame update
         void Start()
         {
-        
+            this.health.onDamaged += HealthOnDamage;
+            this.health.onDestroyed += HealthOnDestroyed;
+
+            this.Play();
+        }
+
+        private void HealthOnDestroyed()
+        {
+            this.Die();
+        }
+
+        private void HealthOnDamage(int damage)
+        {
+            this.onTakeDamage?.Invoke(damage);
+
+            //Debug.Log("Player take damage");
         }
 
         // Update is called once per frame
         void FixedUpdate()
+        {
+            switch (this.state)
+            {
+                case State.Waiting:
+                    break;
+                case State.Playing:
+                    this.UpdatePlaying();
+                    break;
+                case State.Death:
+                    break;
+            }
+        }
+
+        #region Playing
+
+        private void Play()
+        {
+            this.state = State.Playing;
+        }
+
+        private void UpdatePlaying()
         {
             if (InputManager.Jump)
             {
@@ -88,7 +139,6 @@ namespace FirstPersonShooter
                 moveDirection.y = 0f;
 
             prevGrounded = grounded;
-            this.currentMoveDirection = moveDirection;
 
             if (Mathf.Approximately(horizontal, 0f) && Mathf.Approximately(vertical, 0f))
             {
@@ -116,18 +166,30 @@ namespace FirstPersonShooter
             }
             this.lastTimeFire = Time.time;
 
-            Debug.Log("Fire");
             Bullet bullet = Instantiate(this.bulletPrefab, this.bulletStartPos.position, this.cameraTransform.rotation);
-            bullet.Init(this.cameraTransform.forward, this.currentMoveDirection);
+            bullet.Init(this.cameraTransform.forward);
 
             this.SetFireAnim();
         }
+
+        #endregion
+
+        #region Death
+
+        private void Die()
+        {
+            this.state = State.Death;
+            this.onDie?.Invoke();
+        }
+
+        #endregion
 
         #region Animation
 
         private readonly int MoveAnimHash = Animator.StringToHash("IsMoving");
         private readonly int FireAnimHash = Animator.StringToHash("Fire");
 
+        [Header("Animation")]
         public Animator animator;
 
         private void SetMoveAnim(bool isMoving)

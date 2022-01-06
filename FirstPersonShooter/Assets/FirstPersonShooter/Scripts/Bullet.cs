@@ -7,9 +7,9 @@ namespace FirstPersonShooter
     public class Bullet : MonoBehaviour
     {
         public float speed;
-        public float damage;
+        public int damage;
         public Rigidbody rigid;
-        public LayerMask hitLayers;
+        public int teamIndex;
         public float maxLiveTime;
 
         public float affectByPlayerMove;
@@ -41,15 +41,27 @@ namespace FirstPersonShooter
             }
         }
 
-        public void Init(Vector3 lookDirection, Vector3 playerMoveDirection)
+        public void Init(Vector3 lookDirection)
         {
             this.isInitialized = true;
             this.transform.forward = lookDirection;
-            playerMoveDirection.y = 0f;
-            this.moveDirection = lookDirection;// (lookDirection * this.speed * Time.fixedDeltaTime + playerMoveDirection.normalized * this.affectByPlayerMove).normalized;
+            this.moveDirection = lookDirection;
         }
 
-        
+        private void OnCollisionEnter(Collision collision)
+        {
+            if (collision.gameObject.CompareTag("Damageable"))
+            {
+                var health = collision.gameObject.GetComponent<Health>();
+                if (health != null && health.teamIndex != this.teamIndex)
+                {
+                    //Debug.Log("Damage: " + collision.gameObject.name, collision.transform);
+                    health.TakeDamage(this.damage);
+                }
+            }
+
+            this.SelfDestroy();
+        }
 
         private void SelfDestroy()
         {
