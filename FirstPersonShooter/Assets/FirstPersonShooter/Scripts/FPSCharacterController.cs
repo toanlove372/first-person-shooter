@@ -47,20 +47,6 @@ namespace FirstPersonShooter
         {
             this.health.onDamaged += HealthOnDamage;
             this.health.onDestroyed += HealthOnDestroyed;
-
-            this.Play();
-        }
-
-        private void HealthOnDestroyed()
-        {
-            this.Die();
-        }
-
-        private void HealthOnDamage(int damage)
-        {
-            this.onTakeDamage?.Invoke(damage);
-
-            //Debug.Log("Player take damage");
         }
 
         // Update is called once per frame
@@ -78,9 +64,26 @@ namespace FirstPersonShooter
             }
         }
 
+        public void Init()
+        {
+            this.health.Init();
+        }
+
+        private void HealthOnDestroyed()
+        {
+            this.Die();
+        }
+
+        private void HealthOnDamage(int damage)
+        {
+            this.onTakeDamage?.Invoke(damage);
+
+            //Debug.Log("Player take damage");
+        }
+
         #region Playing
 
-        private void Play()
+        public void Play()
         {
             this.state = State.Playing;
         }

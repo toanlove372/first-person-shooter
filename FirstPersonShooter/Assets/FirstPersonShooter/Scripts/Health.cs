@@ -18,7 +18,7 @@ namespace FirstPersonShooter
 
         private void Awake()
         {
-            this.currentHealth = this.maxHealth;
+            this.Init();
         }
 
         public void TakeDamage(int damage)
@@ -37,6 +37,11 @@ namespace FirstPersonShooter
             {
                 this.onDestroyed?.Invoke();
             }
+        }
+
+        public void Init()
+        {
+            this.currentHealth = this.maxHealth;
         }
     }
 }
