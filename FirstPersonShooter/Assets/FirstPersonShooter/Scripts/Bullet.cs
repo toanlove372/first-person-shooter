@@ -12,11 +12,15 @@ namespace FirstPersonShooter
         public int teamIndex;
         public float maxLiveTime;
 
+        public GameObject explosionPrefab;
+
         public float affectByPlayerMove;
 
         private bool isInitialized;
         private float liveTime;
         private Vector3 moveDirection;
+
+        public event System.Action<Bullet> onDestroyed;
 
         // Start is called before the first frame update
         void Start()
@@ -25,14 +29,14 @@ namespace FirstPersonShooter
         }
 
         // Update is called once per frame
-        void FixedUpdate()
+        public void OnUpdate()
         {
             if (this.isInitialized == false)
             {
                 return;
             }
 
-            this.rigid.velocity = this.moveDirection * this.speed * Time.fixedDeltaTime;
+            this.transform.position += this.moveDirection * this.speed * Time.fixedDeltaTime;
 
             this.liveTime += Time.fixedDeltaTime;
             if (this.liveTime > this.maxLiveTime)
@@ -60,11 +64,18 @@ namespace FirstPersonShooter
                 }
             }
 
+            if (this.explosionPrefab != null)
+            {
+                var explosion = Instantiate(this.explosionPrefab, this.transform.position, Quaternion.identity);
+                explosion.SetActive(true);
+            }
+
             this.SelfDestroy();
         }
 
         private void SelfDestroy()
         {
+            this.onDestroyed?.Invoke(this);
             Destroy(this.gameObject);
         }
     }

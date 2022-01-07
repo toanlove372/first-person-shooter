@@ -39,6 +39,8 @@ namespace FirstPersonShooter
 
         private State state;
 
+        private List<Bullet> bullets = new List<Bullet>();
+
         public event Action<int> onTakeDamage;
         public event Action onDie;
 
@@ -50,7 +52,7 @@ namespace FirstPersonShooter
         }
 
         // Update is called once per frame
-        void FixedUpdate()
+        public void OnUpdate()
         {
             switch (this.state)
             {
@@ -105,6 +107,11 @@ namespace FirstPersonShooter
 
             Vector2 move = InputManager.Move;
             PlayerMovement(move.x, move.y);
+
+            for (var i = 0; i < this.bullets.Count; i++)
+            {
+                this.bullets[i].OnUpdate();
+            }
         }
 
         private void Jumping()
@@ -171,6 +178,11 @@ namespace FirstPersonShooter
 
             Bullet bullet = Instantiate(this.bulletPrefab, this.bulletStartPos.position, this.cameraTransform.rotation);
             bullet.Init(this.cameraTransform.forward);
+            bullet.onDestroyed += (destroyedBullet) =>
+            {
+                this.bullets.Remove(bullet);
+            };
+            this.bullets.Add(bullet);
 
             this.SetFireAnim();
         }
@@ -206,5 +218,16 @@ namespace FirstPersonShooter
         }
 
         #endregion
+
+        private void OnDrawGizmosSelected()
+        {
+            if (this.cameraTransform == null)
+            {
+                return;
+            }
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(this.bulletStartPos.position, this.bulletStartPos.position + this.cameraTransform.forward * 100f);
+        }
     }
 }

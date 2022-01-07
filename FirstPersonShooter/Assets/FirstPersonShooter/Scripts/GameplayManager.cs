@@ -10,13 +10,18 @@ namespace FirstPersonShooter
         {
             Ready,
             Playing,
+            Paused,
             End,
         }
 
         public int countdownTime;
         public GameUI gameUI;
         public FPSCharacterController player;
+        public List<Enemy> enemies;
         public Transform startPosition;
+        public TriggerEnter winGameZone;
+
+        public float disableEnemyTime;
 
         private State state;
         private int score;
@@ -33,7 +38,31 @@ namespace FirstPersonShooter
         // Update is called once per frame
         void Update()
         {
+            switch (this.state)
+            {
+                case State.Ready:
+                    break;
+                case State.Playing:
+                    this.player.OnUpdate();
+                    for (var i = 0; i < this.enemies.Count; i++)
+                    {
+                        this.enemies[i].OnUpdate();
+                    }
 
+                    if (Input.GetKeyDown(KeyCode.Escape))
+                    {
+                        this.PauseGame(true);
+                    }
+                    break;
+                case State.Paused:
+                    if (Input.GetKeyDown(KeyCode.Escape))
+                    {
+                        this.PauseGame(false);
+                    }
+                    break;
+                case State.End:
+                    break;
+            }
         }
 
         private void Init()
@@ -41,9 +70,30 @@ namespace FirstPersonShooter
             this.player.onDie += this.LoseGame;
             this.player.onTakeDamage += (damage) =>
             {
+                this.gameUI.SetPlayerHealth(this.player.health.CurrentHealth);
                 this.gameUI.ShowDamage(damage);
             };
 
+            for (var i = 0; i < this.enemies.Count; i++)
+            {
+                this.enemies[i].onDie += this.OnEnemyDie;
+            }
+
+            this.gameUI.onReplayClicked += this.Replay;
+            this.gameUI.onResumeClicked += () =>
+            {
+                this.PauseGame(false);
+            };
+
+            this.winGameZone.onEnter += (enteringObject) =>
+            {
+                if (enteringObject == this.player.gameObject)
+                {
+                    this.WinGame();
+                }
+            };
+
+            InputManager.LockMouse(true);
             this.Ready();
         }
 
@@ -74,8 +124,14 @@ namespace FirstPersonShooter
             var waitOneSec = new WaitForSeconds(1f);
             while (this.currentTime > 0)
             {
-                this.gameUI.SetCountdown(this.currentTime);
+                if (this.state != State.Playing)
+                {
+                    yield return null;
+                    continue;
+                }
                 this.currentTime--;
+                this.gameUI.SetCountdown(this.currentTime);
+                
                 yield return waitOneSec;
             }
 
@@ -86,12 +142,40 @@ namespace FirstPersonShooter
         {
             this.state = State.End;
             this.gameUI.ShowDefeat();
+            InputManager.LockMouse(false);
         }
 
         private void WinGame()
         {
             this.state = State.End;
             this.gameUI.ShowVictory();
+            InputManager.LockMouse(false);
+        }
+
+        private void PauseGame(bool isPaused)
+        {
+            InputManager.LockMouse(!isPaused);
+            this.state = isPaused ? State.Paused : State.Playing;
+            this.gameUI.SetPaused(isPaused);
+        }
+
+        private void Replay()
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        }
+
+        private void OnEnemyDie(Enemy enemy)
+        {
+            this.score += 100;
+            this.gameUI.SetScore(this.score);
+            enemy.gameObject.SetActive(false);
+            StartCoroutine(IeReactiveEnemy());
+            IEnumerator IeReactiveEnemy()
+            {
+                yield return new WaitForSeconds(this.disableEnemyTime);
+                enemy.Init();
+                enemy.gameObject.SetActive(true);
+            }
         }
 
         private void Delay(float time, System.Action onDone)

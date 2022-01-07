@@ -12,11 +12,16 @@ namespace FirstPersonShooter
         public Text countdownText;
         public Text messageText;
         public Image damageEffect;
+        public float damageEffectFadeSpeed;
         public GameObject victoryPanel;
         public GameObject defeatPanel;
+        public GameObject pausedPanel;
 
         private bool showDamage;
         private float damageEffectAlpha;
+
+        public event System.Action onReplayClicked;
+        public event System.Action onResumeClicked;
 
         // Start is called before the first frame update
         void Start()
@@ -31,7 +36,7 @@ namespace FirstPersonShooter
             {
                 if (this.damageEffectAlpha > 0f)
                 {
-                    this.damageEffectAlpha -= 0.2f * Time.deltaTime;
+                    this.damageEffectAlpha -= this.damageEffectFadeSpeed * Time.deltaTime;
                 }
                 this.damageEffect.color = new Color(1, 0f, 0f, this.damageEffectAlpha);
                 if (this.damageEffectAlpha < 0f)
@@ -44,7 +49,8 @@ namespace FirstPersonShooter
         public void ShowWelcome(int seconds)
         {
             var time = System.TimeSpan.FromSeconds(seconds);
-            this.messageText.text = $"Reach the helicopter in {seconds}";
+            this.messageText.text = $"Reach the helicopter in {time.ToString(@"hh\:mm\:ss")}\n" +
+                $"If an enemy is killed, it will respawned in 5s";
             this.messageText.gameObject.SetActive(true);
         }
 
@@ -83,6 +89,21 @@ namespace FirstPersonShooter
         public void ShowDefeat()
         {
             this.defeatPanel.SetActive(true);
+        }
+
+        public void SetPaused(bool isPaused)
+        {
+            this.pausedPanel.SetActive(isPaused);
+        }
+
+        public void OnReplayButtonClicked()
+        {
+            this.onReplayClicked?.Invoke();
+        }
+
+        public void OnResumeButtonClicked()
+        {
+            this.onResumeClicked?.Invoke();
         }
     }
 }

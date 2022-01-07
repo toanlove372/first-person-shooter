@@ -84,15 +84,24 @@ namespace FirstPersonShooter
             float rotationY = transform.localEulerAngles.x + Input.GetAxis("Mouse Y") * sensitivityY;//Mathf.Clamp(rotationY, minimumY, maximumY);
             this.rotate = new Vector2(rotationX, rotationY);
 
-            if (Input.GetKey(KeyCode.Escape))
+        }
+
+        public static void LockMouse(bool isLocked)
+        {
+            if (instance.useTouch)
             {
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
+                return;
             }
-            else
+
+            if (isLocked)
             {
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;
+            }
+            else
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
             }
         }
     }
