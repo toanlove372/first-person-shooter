@@ -21,10 +21,10 @@ namespace FirstPersonShooter
         private Vector2 move;
         private Vector2 rotate;
 
-        public static bool Jump => instance.jump;
-        public static bool Fire => instance.fire;
-        public static Vector2 Rotate => instance.rotate;
-        public static Vector2 Move => instance.move;
+        public static bool Jump => Instance.jump;
+        public static bool Fire => Instance.fire;
+        public static Vector2 Rotate => Instance.rotate;
+        public static Vector2 Move => Instance.move;
 
         static InputManager instance;
         static InputManager Instance
@@ -88,7 +88,7 @@ namespace FirstPersonShooter
 
         public static void LockMouse(bool isLocked)
         {
-            if (instance.useTouch)
+            if (Instance.useTouch)
             {
                 return;
             }

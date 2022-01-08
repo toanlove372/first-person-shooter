@@ -143,6 +143,8 @@ namespace FirstPersonShooter
             this.state = State.End;
             this.gameUI.ShowDefeat();
             InputManager.LockMouse(false);
+            SoundManager.PlayBackgroundMusic(SoundManager.Sound.GameLose);
+            SoundManager.Play(SoundManager.Sound.GameLose);
         }
 
         private void WinGame()
@@ -150,6 +152,8 @@ namespace FirstPersonShooter
             this.state = State.End;
             this.gameUI.ShowVictory();
             InputManager.LockMouse(false);
+            SoundManager.PlayBackgroundMusic(SoundManager.Sound.GameWin);
+            SoundManager.Play(SoundManager.Sound.GameWin);
         }
 
         private void PauseGame(bool isPaused)

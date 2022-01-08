@@ -80,7 +80,7 @@ namespace FirstPersonShooter
         {
             this.onTakeDamage?.Invoke(damage);
 
-            //Debug.Log("Player take damage");
+            SoundManager.Play(SoundManager.Sound.PlayerHit);
         }
 
         #region Playing
@@ -185,6 +185,8 @@ namespace FirstPersonShooter
             this.bullets.Add(bullet);
 
             this.SetFireAnim();
+
+            SoundManager.Play(SoundManager.Sound.PlayerShoot);
         }
 
         #endregion
